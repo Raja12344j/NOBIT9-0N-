@@ -1,10 +1,5 @@
 import requests
-import json
 import time
-import threading
-import os
-import random
-from platform import system
 
 def parse_raw_cookie(raw_cookie_string):
     cookies = {}
@@ -15,35 +10,29 @@ def parse_raw_cookie(raw_cookie_string):
             cookies[k.strip()] = v.strip()
     return cookies
 
-# 1. Read cookies from cookies.txt (browser se copy kari string paste karni hai)
+# 1. Read cookies from cookies.txt
 with open('cookies.txt', 'r') as f:
     raw_cookie = f.read().strip()
 cookies = parse_raw_cookie(raw_cookie)
 
-# 2. Aapki main script logic yahan shuru karo
-def send_messages():
-    # Example file reading (baaki logic aapka original jaise ho)
-    with open('FL.txt') as f:
-        fl_file = f.read().strip()
-    with open(fl_file) as f:
-        messages = [msg.strip() for msg in f if msg.strip()]
+# 2. Read msg file name from FL.txt, then get messages
+with open('FL.txt') as f:
+    message_file = f.read().strip()
 
-    # Example: Facebook API/endpoint URL (yahan apne logic ke mutabik daalna hoga)
-    url = "https://facebook.com/messages/send"  # apna endpoint
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-        # Baaki headers agar chahiye
+with open(message_file) as f:
+    messages = [msg.strip() for msg in f if msg.strip()]
+
+# 3. Replace with your actual Facebook API/message endpoint and payload format!
+url = "https://facebook.com/messages/send"   # <-- Change this as per your actual use
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
+
+for msg in messages:
+    payload = {
+        "message": msg,
+        "recipient_id": "100058845120522"  # ID ya jo field aapke use-case me ho
     }
-    for msg in messages:
-        payload = {
-            "message": msg
-            # Baaki params jo chahiye
-        }
-        # Cookie dict pass karo
-        resp = requests.post(url, data=payload, headers=headers, cookies=cookies)
-        print(resp.status_code, resp.text)
-        time.sleep(2)  # Delay optional
-
-# Main call yahan se
-if __name__ == "__main__":
-    send_messages()
+    response = requests.post(url, data=payload, headers=headers, cookies=cookies)
+    print(response.status_code, response.text)
+    time.sleep(2)  # optional delay
